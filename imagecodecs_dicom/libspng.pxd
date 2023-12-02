@@ -1,4 +1,4 @@
-# imagecodecs/libspng.pxd
+# imagecodecs_dicom/libspng.pxd
 # cython: language_level = 3
 
 # Cython declarations for the `libspng 0.7.3` library.

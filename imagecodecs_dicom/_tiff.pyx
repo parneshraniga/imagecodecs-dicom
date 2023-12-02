@@ -1,4 +1,4 @@
-# imagecodecs/_tiff.pyx
+# imagecodecs_dicom/_tiff.pyx
 # distutils: language = c
 # cython: language_level = 3
 # cython: boundscheck=False

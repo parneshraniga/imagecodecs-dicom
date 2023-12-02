@@ -1,4 +1,4 @@
-# imagecodecs/_png.pyx
+# imagecodecs_dicom/_png.pyx
 # distutils: language = c
 # cython: language_level = 3
 # cython: boundscheck=False

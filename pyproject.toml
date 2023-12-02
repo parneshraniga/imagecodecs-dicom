@@ -1,4 +1,4 @@
-# imagecodecs/pyproject.toml
+# imagecodecs_dicom/pyproject.toml
 
 [build-system]
 requires = ["setuptools", "wheel", "numpy", "Cython"]

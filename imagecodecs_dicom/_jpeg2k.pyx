@@ -1,4 +1,4 @@
-# imagecodecs/_jpeg2k.pyx
+# imagecodecs_dicom/_jpeg2k.pyx
 # distutils: language = c
 # cython: language_level = 3
 # cython: boundscheck=False

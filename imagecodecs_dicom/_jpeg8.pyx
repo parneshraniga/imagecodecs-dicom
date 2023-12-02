@@ -1,4 +1,4 @@
-# imagecodecs/_jpeg8.pyx
+# imagecodecs_dicom/_jpeg8.pyx
 # distutils: language = c
 # cython: language_level = 3
 # cython: boundscheck=False

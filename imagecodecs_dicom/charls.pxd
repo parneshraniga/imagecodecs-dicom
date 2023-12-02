@@ -1,4 +1,4 @@
-# imagecodecs/charls.pxd
+# imagecodecs_dicom/charls.pxd
 # cython: language_level = 3
 
 # Cython declarations for the `CharLS 2.4.1` library.

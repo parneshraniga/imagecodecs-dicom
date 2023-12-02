@@ -1,4 +1,4 @@
-# imagecodecs/libpng.pxd
+# imagecodecs_dicom/libpng.pxd
 # cython: language_level = 3
 
 # Cython declarations for the `libpng 1.6.40` library with APNG patch.

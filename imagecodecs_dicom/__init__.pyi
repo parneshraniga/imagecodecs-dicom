@@ -1,4 +1,4 @@
-# imagecodecs/__init__.pyi
+# imagecodecs_dicom/__init__.pyi
 
 # Copyright (c) 2023, Christoph Gohlke
 # All rights reserved.

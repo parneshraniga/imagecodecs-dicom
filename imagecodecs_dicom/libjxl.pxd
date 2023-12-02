@@ -1,4 +1,4 @@
-# imagecodecs/libjxl.pxd
+# imagecodecs_dicom/libjxl.pxd
 # cython: language_level = 3
 
 # Cython declarations for the `jpeg-xl 0.8.0` library.

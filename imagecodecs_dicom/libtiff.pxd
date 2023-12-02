@@ -1,4 +1,4 @@
-# imagecodecs/libtiff.pxd
+# imagecodecs_dicom/libtiff.pxd
 # cython: language_level = 3
 
 # Cython declarations for the `libtiff 4.6.0` library.

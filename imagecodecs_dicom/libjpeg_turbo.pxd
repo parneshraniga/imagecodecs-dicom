@@ -1,12 +1,12 @@
-# imagecodecs/mozjpeg.pxd
+# imagecodecs_dicom/libjpeg_turbo.pxd
 # cython: language_level = 3
 
-# Cython declarations for the `mozjpeg 4.1.1` library.
-# https://github.com/mozilla/mozjpeg
+# Cython declarations for the `libjpeg-turbo 3.0.0` library.
+# https://github.com/libjpeg-turbo/libjpeg-turbo
 
 from libc.stdio cimport FILE
 
-cdef extern from 'mozjpeg/jpeglib.h':
+cdef extern from 'jpeglib.h':
 
     # jconfig.h
     int JPEG_LIB_VERSION
@@ -16,11 +16,20 @@ cdef extern from 'mozjpeg/jpeglib.h':
 
     # jmorecfg.h
     int MAX_COMPONENTS
-    int MAXJSAMPLE
-    int CENTERJSAMPLE
     int JPEG_MAX_DIMENSION
 
     ctypedef unsigned char JSAMPLE
+    int MAXJSAMPLE
+    int CENTERJSAMPLE
+
+    ctypedef short J12SAMPLE
+    int MAXJ12SAMPLE
+    int CENTERJ12SAMPLE
+
+    ctypedef unsigned short J16SAMPLE
+    int MAXJ16SAMPLE
+    int CENTERJ16SAMPLE
+
     ctypedef short JCOEF
     ctypedef unsigned char JOCTET
     ctypedef unsigned char UINT8
@@ -96,6 +105,14 @@ cdef extern from 'mozjpeg/jpeglib.h':
     ctypedef JSAMPLE* JSAMPROW
     ctypedef JSAMPROW* JSAMPARRAY
     ctypedef JSAMPARRAY* JSAMPIMAGE
+
+    ctypedef J12SAMPLE *J12SAMPROW
+    ctypedef J12SAMPROW *J12SAMPARRAY
+    ctypedef J12SAMPARRAY *J12SAMPIMAGE
+
+    ctypedef J16SAMPLE *J16SAMPROW
+    ctypedef J16SAMPROW *J16SAMPARRAY
+    ctypedef J16SAMPARRAY *J16SAMPIMAGE
 
     ctypedef JCOEF JBLOCK[64]  # DCTSIZE2
     ctypedef JBLOCK* JBLOCKROW
@@ -190,31 +207,6 @@ cdef extern from 'mozjpeg/jpeglib.h':
         JDITHER_ORDERED
         JDITHER_FS
 
-    ctypedef enum J_BOOLEAN_PARAM:
-        JBOOLEAN_OPTIMIZE_SCANS
-        JBOOLEAN_TRELLIS_QUANT
-        JBOOLEAN_TRELLIS_QUANT_DC
-        JBOOLEAN_TRELLIS_EOB_OPT
-        JBOOLEAN_USE_LAMBDA_WEIGHT_TBL
-        JBOOLEAN_USE_SCANS_IN_TRELLIS
-        JBOOLEAN_TRELLIS_Q_OPT
-        JBOOLEAN_OVERSHOOT_DERINGING
-
-    ctypedef enum J_FLOAT_PARAM:
-        JFLOAT_LAMBDA_LOG_SCALE1
-        JFLOAT_LAMBDA_LOG_SCALE2
-        JFLOAT_TRELLIS_DELTA_DC_WEIGHT
-
-    ctypedef enum J_INT_PARAM:
-        JINT_COMPRESS_PROFILE
-        JINT_TRELLIS_FREQ_SPLIT
-        JINT_TRELLIS_NUM_LOOPS
-        JINT_BASE_QUANT_TBL_IDX
-        JINT_DC_SCAN_OPT_MODE
-
-    int JCP_MAX_COMPRESSION
-    int tJCP_FASTEST
-
     struct jpeg_common_struct:
         # jpeg_common_fields
         jpeg_error_mgr* err
@@ -307,21 +299,6 @@ cdef extern from 'mozjpeg/jpeglib.h':
         jpeg_entropy_encoder* entropy
         jpeg_scan_info* script_space
         int script_space_size
-
-    ctypedef void (*jpeg_idct_method) (
-        j_decompress_ptr cinfo,
-        jpeg_component_info* compptr,
-        JCOEFPTR coef_block,
-        JSAMPARRAY output_buf,
-        JDIMENSION output_col
-    ) nogil
-
-    ctypedef void (*jpeg_idct_method_selector) (
-        j_decompress_ptr cinfo,
-        jpeg_component_info* compptr,
-        jpeg_idct_method* set_idct_method,
-        int* set_idct_category
-    ) nogil
 
     struct jpeg_decompress_struct:
         # jpeg_common_fields
@@ -701,8 +678,10 @@ cdef extern from 'mozjpeg/jpeglib.h':
         int quality
     ) nogil
 
-    float jpeg_float_quality_scaling(
-        float quality
+    void jpeg_enable_lossless(
+        j_compress_ptr cinfo,
+        int predictor_selection_value,
+        int point_transform
     ) nogil
 
     void jpeg_simple_progression(
@@ -733,6 +712,18 @@ cdef extern from 'mozjpeg/jpeglib.h':
         JDIMENSION num_lines
     ) nogil
 
+    JDIMENSION jpeg12_write_scanlines(
+        j_compress_ptr cinfo,
+        J12SAMPARRAY scanlines,
+        JDIMENSION num_lines
+    ) nogil
+
+    JDIMENSION jpeg16_write_scanlines(
+        j_compress_ptr cinfo,
+        J16SAMPARRAY scanlines,
+        JDIMENSION num_lines
+    ) nogil
+
     void jpeg_finish_compress(
         j_compress_ptr cinfo
     ) nogil
@@ -744,6 +735,12 @@ cdef extern from 'mozjpeg/jpeglib.h':
     JDIMENSION jpeg_write_raw_data(
         j_compress_ptr cinfo,
         JSAMPIMAGE data,
+        JDIMENSION num_lines
+    ) nogil
+
+    JDIMENSION jpeg12_write_raw_data(
+        j_compress_ptr cinfo,
+        J12SAMPIMAGE data,
         JDIMENSION num_lines
     ) nogil
 
@@ -794,7 +791,24 @@ cdef extern from 'mozjpeg/jpeglib.h':
         JDIMENSION max_lines
     ) nogil
 
+    JDIMENSION jpeg12_read_scanlines(
+        j_decompress_ptr cinfo,
+        J12SAMPARRAY scanlines,
+        JDIMENSION max_lines
+    ) nogil
+
+    JDIMENSION jpeg16_read_scanlines(
+        j_decompress_ptr cinfo,
+        J16SAMPARRAY scanlines,
+        JDIMENSION max_lines
+    ) nogil
+
     JDIMENSION jpeg_skip_scanlines(
+        j_decompress_ptr cinfo,
+        JDIMENSION num_lines
+    ) nogil
+
+    JDIMENSION jpeg12_skip_scanlines(
         j_decompress_ptr cinfo,
         JDIMENSION num_lines
     ) nogil
@@ -803,6 +817,12 @@ cdef extern from 'mozjpeg/jpeglib.h':
         j_decompress_ptr cinfo,
         JDIMENSION* xoffset,
         JDIMENSION* width
+    ) nogil
+
+    void jpeg12_crop_scanline(
+        j_decompress_ptr cinfo,
+        JDIMENSION *xoffset,
+        JDIMENSION *width
     ) nogil
 
     boolean jpeg_finish_decompress(
@@ -815,12 +835,18 @@ cdef extern from 'mozjpeg/jpeglib.h':
         JDIMENSION max_lines
     ) nogil
 
+    JDIMENSION jpeg12_read_raw_data(
+        j_decompress_ptr cinfo,
+        J12SAMPIMAGE data,
+        JDIMENSION max_lines
+    ) nogil
+
     boolean jpeg_has_multiple_scans(
         j_decompress_ptr cinfo
     ) nogil
 
     boolean jpeg_start_output(
-        const j_decompress_ptr cinfo,
+        j_decompress_ptr cinfo,
         int scan_number
     ) nogil
 
@@ -829,7 +855,7 @@ cdef extern from 'mozjpeg/jpeglib.h':
     ) nogil
 
     boolean jpeg_input_complete(
-        const j_decompress_ptr cinfo
+        j_decompress_ptr cinfo
     ) nogil
 
     void jpeg_new_colormap(
@@ -875,7 +901,7 @@ cdef extern from 'mozjpeg/jpeglib.h':
     ) nogil
 
     void jpeg_copy_critical_parameters(
-        const j_decompress_ptr srcinfo,
+        j_decompress_ptr srcinfo,
         j_compress_ptr dstinfo
     ) nogil
 
@@ -900,64 +926,10 @@ cdef extern from 'mozjpeg/jpeglib.h':
         int desired
     ) nogil
 
-    int JPEG_C_PARAM_SUPPORTED
-
-    boolean jpeg_c_bool_param_supported(
-        const j_compress_ptr cinfo,
-        J_BOOLEAN_PARAM param
-    ) nogil
-
-    void jpeg_c_set_bool_param (
-        j_compress_ptr cinfo,
-        J_BOOLEAN_PARAM param, boolean value
-    ) nogil
-
-    boolean jpeg_c_get_bool_param(
-        const j_compress_ptr cinfo,
-        J_BOOLEAN_PARAM param
-    ) nogil
-
-    boolean jpeg_c_float_param_supported(
-        const j_compress_ptr cinfo,
-        J_FLOAT_PARAM param
-    ) nogil
-
-    void jpeg_c_set_float_param(
-        j_compress_ptr cinfo,
-        J_FLOAT_PARAM param,
-        float value
-    ) nogil
-
-    float jpeg_c_get_float_param(
-        const j_compress_ptr cinfo,
-        J_FLOAT_PARAM param
-    ) nogil
-
-    boolean jpeg_c_int_param_supported(
-        const j_compress_ptr cinfo,
-        J_INT_PARAM param
-    ) nogil
-
-    void jpeg_c_set_int_param(
-        j_compress_ptr cinfo,
-        J_INT_PARAM param,
-        int value
-    ) nogil
-
-    int jpeg_c_get_int_param(
-        const j_compress_ptr cinfo,
-        J_INT_PARAM param
-    ) nogil
-
     boolean jpeg_read_icc_profile(
         j_decompress_ptr cinfo,
         JOCTET** icc_data_ptr,
         unsigned int* icc_data_len
-    ) nogil
-
-    void jpeg_set_idct_method_selector(
-        j_decompress_ptr cinfo,
-        jpeg_idct_method_selector selector
     ) nogil
 
     int JPEG_RST0

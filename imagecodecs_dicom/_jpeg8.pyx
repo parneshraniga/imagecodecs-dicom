@@ -428,6 +428,17 @@ def jpeg8_decode(
         jpeg_finish_decompress(&cinfo)
         jpeg_destroy_decompress(&cinfo)
 
+    dcm_meta = DCMPixelMeta()
+    dcm_meta.samples_per_pixel = 
+    dcm_meta.photometric_interpretation =
+    dcm_meta.rows = shape[0]
+    dcm_meta.columns = shape[1]
+    dcm_meta.bits_allocated=
+    dcm_meta.bits_stored = 
+    dcm_meta.pixel_representation=
+    dcm_meta.high_bit
+    dcm_meta.planar_configuration
+    dcm_meta.pixel_data_format=    
     return out
 
 

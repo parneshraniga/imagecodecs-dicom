@@ -245,6 +245,8 @@ def jpegls_encode(data, level=None, out=None):
             charls_jpegls_encoder_destroy(encoder)
 
     del dst
+
+
     return _return_output(out, dstsize, byteswritten, outgiven)
 
 
@@ -260,12 +262,16 @@ def jpegls_decode(data, out=None):
         charls_jpegls_decoder* decoder = NULL
         charls_interleave_mode interleave_mode
         charls_frame_info frameinfo
+        charls_color_transformation color_transformation
         # charls_spiff_header spiff_header
         # int32_t header_found
 
     if data is out:
         raise ValueError('cannot decode in-place')
 
+    bits_allocated=0
+    bits_stored=0
+    high_bit=0
     try:
         with nogil:
             decoder = charls_jpegls_decoder_create()
@@ -282,15 +288,15 @@ def jpegls_decode(data, out=None):
                     'charls_jpegls_decoder_set_source_buffer', ret
                 )
 
-            # ret = charls_jpegls_decoder_read_spiff_header(
-            #     decoder,
-            #     &spiff_header,
-            #     &header_found
-            # )
-            # if ret:
-            #     raise JpeglsError(
-            #         'charls_jpegls_decoder_read_spiff_header', ret
-            #     )
+            ret = charls_jpegls_decoder_read_spiff_header(
+                decoder,
+                &spiff_header,
+                &header_found
+            )
+            if ret:
+                raise JpeglsError(
+                    'charls_jpegls_decoder_read_spiff_header', ret
+                )
 
             ret = charls_jpegls_decoder_read_header(decoder)
             if ret:
@@ -313,15 +319,20 @@ def jpegls_decode(data, out=None):
                 if frameinfo.bits_per_sample <= 8:
                     dtype = numpy.uint8
                     itemsize = 1
+                    bits_allocated=8
                 elif frameinfo.bits_per_sample <= 16:
                     dtype = numpy.uint16
                     itemsize = 2
+                    bits_allocated=16
                 else:
                     raise ValueError(
                         'JpegLs bits_per_sample not supported: {}'.format(
                             frameinfo.bits_per_sample
                         )
                     )
+
+                bit_stored=frameinfo.bits_per_sample
+                high_bit=frameinfo.bits_per_sample-1
 
                 if frameinfo.component_count == 1:
                     shape = (
@@ -382,4 +393,33 @@ def jpegls_decode(data, out=None):
     ):
         out = numpy.moveaxis(out, 0, -1)
 
-    return out
+    ## seup the dicom metada
+    dcm_meta = DCMPixelMeta()
+    dcm_meta.samples_per_pixel = frameinfo.component_count
+    if dcm_meta.samples_per_pixel == 1:
+        dcm_meta.photometric_interpretation = "MONOCHROME2"
+    elif dcm_meta.samples_per_pixel == 3:
+        ## do something from the colorspace
+        if spiff_header.colorspace == 3:
+
+                dcm_meta.photometric_interpretation = "YBR_FULL"
+
+        elif spiff_header.colorspace == 10:
+            dcm_meta.photometric_interpretation = "RGB"
+
+        else:
+            dcm_meta.photometric_interpretation="UNKNOWN %d"%spiff_header.colorspace
+
+    dcm_meta.rows = shape[0]
+    dcm_meta.columns = shape[1]
+    dcm_meta.bits_allocated=bits_allocated
+    dcm_meta.bits_stored = bit_stored
+    dcm_meta.pixel_representation=0 ## check this
+    dcm_meta.high_bit=high_bit
+    if dcm_meta.samples_per_pixel != 3:
+        dcm_meta.planar_configuration=-1
+    else:
+        dcm_meta.planar_configuration=1
+    dcm_meta.pixel_data_format="int"
+
+    return (out,dcm_meta)

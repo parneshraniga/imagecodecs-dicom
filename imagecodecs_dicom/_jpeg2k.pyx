@@ -47,6 +47,7 @@ from openjpeg cimport *
 
 from libc.math cimport log
 
+from dcm_meta import DCMPixelMeta
 
 class JPEG2K:
     """JPEG2K codec constants."""
@@ -448,6 +449,7 @@ def jpeg2k_decode(
         opj_image_t* image = NULL
         opj_stream_t* stream = NULL
         opj_image_comp_t* comp = NULL
+        opj_codestream_info_v2_t* cstrminfo = NULL
         opj_dparameters_t parameters
         OPJ_BOOL ret = OPJ_FALSE
         OPJ_CODEC_FORMAT codecformat
@@ -457,6 +459,8 @@ def jpeg2k_decode(
         int verbosity = verbose
         bytes sig
         bint contig = not planar
+
+    ph_interp = ""
 
     if data is out:
         raise ValueError('cannot decode in-place')
@@ -547,6 +551,7 @@ def jpeg2k_decode(
 
             if image.color_space == OPJ_CLRSPC_SYCC:
                 color_sycc_to_rgb(image)
+                ## color space is
             if image.icc_profile_buf:
                 color_apply_icc_profile(image)
                 free(image.icc_profile_buf)
@@ -575,6 +580,12 @@ def jpeg2k_decode(
                 itemsize = 4
             elif itemsize < 1 or itemsize > 4:
                 raise Jpeg2kError(f'unsupported itemsize {itemsize}')
+
+        ## BITS ALLOCATDE AND bit_stored
+        bits_allocated = itemsize*8
+        bits_stored = prec
+        high_bit = bits_allocated-1
+        pixel_representation = sgnd
 
         dtype = '{}{}'.format('i' if sgnd else 'u', itemsize)
         if samples == 1:
@@ -674,6 +685,21 @@ def jpeg2k_decode(
                     for j in range(bandsize):
                         u4[j * samples] = <uint32_t> band[j]
 
+            ## get codestream info
+        cstrminfo = opj_get_cstr_info(codec)
+        mct = cstrminfo.tile_info.mct
+        reversible=cstrminfo.tile_info.tccp_info.qmfbid
+
+        if image.color_space == OPJ_CLRSPC_GRAY:
+            ph_interp="MONOCHROME2"
+        elif image.color_space == OPJ_CLRSPC_SYCC:
+            if mct == 0:
+                ph_interp="YBR_FULL"
+            elif mct == 1:
+                if reversible == 0:
+                    ph_interp="YBR_ICT"
+                else:
+                    ph_interp="YBR_RCT"
     finally:
         if stream != NULL:
             opj_stream_destroy(stream)
@@ -681,6 +707,31 @@ def jpeg2k_decode(
             opj_destroy_codec(codec)
         if image != NULL:
             opj_image_destroy(image)
+
+
+
+
+
+
+    ## seup the dicom metada
+    dcm_meta = DCMPixelMeta()
+    dcm_meta.samples_per_pixel = image.numcomps
+    dcm_meta.photometric_interpretation = ph_interp
+    dcm_meta.rows = shape[0]
+    dcm_meta.columns = shape[1]
+    dcm_meta.bits_allocated=bits_allocated
+    dcm_meta.bits_stored = bits_stored
+    dcm_meta.pixel_representation=pixel_representation
+    dcm_meta.high_bit=high_bit
+    if dcm_meta.samples_per_pixel != 3:
+        dcm_meta.planar_configuration=-1
+    else:
+        dcm_meta.planar_configuration=0
+    dcm_meta.pixel_data_format="int"
+
+
+
+
 
     return out
 

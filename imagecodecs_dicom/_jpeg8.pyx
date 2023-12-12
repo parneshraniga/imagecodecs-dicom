@@ -47,6 +47,8 @@ from cython.operator cimport dereference as deref
 
 from libc.setjmp cimport setjmp, longjmp, jmp_buf
 
+from dcm_meta import DCMPixelMeta
+
 
 class JPEG8:
     """JPEG8 codec constants."""
@@ -407,39 +409,71 @@ def jpeg8_decode(
             dst = out
             dstsize = dst.nbytes
             rowstride = dst.strides[0] // dst.itemsize
-
+        bits_stored = 0
+        bits_allocated = 0
+        high_bit = 0
         memset(<void*> dst.data, 0, dstsize)
         if cinfo.data_precision <= 8:
             rowpointer8 = <JSAMPROW> dst.data
+            bits_allocated = 8
+            bits_stored = 8
+            high_bit = 7
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg_read_scanlines(&cinfo, &rowpointer8, 1)
                 rowpointer8 += rowstride
         elif cinfo.data_precision == 12:
             rowpointer12 = <J12SAMPROW> dst.data
+            bits_allocated = 16
+            bit_stored = 12
+            high_bit = 11
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg12_read_scanlines(&cinfo, &rowpointer12, 1)
                 rowpointer12 += rowstride
         else:
             # elif cinfo.data_precision == 16:
             rowpointer16 = <J16SAMPROW> dst.data
+            bits_allocated = 16
+            bits_stored = 16
+            high_bit = 15
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg16_read_scanlines(&cinfo, &rowpointer16, 1)
                 rowpointer16 += rowstride
         jpeg_finish_decompress(&cinfo)
         jpeg_destroy_decompress(&cinfo)
 
+    ## seup the dicom metada
     dcm_meta = DCMPixelMeta()
-    dcm_meta.samples_per_pixel = 
-    dcm_meta.photometric_interpretation =
+    dcm_meta.samples_per_pixel = cinfo.output_components
+    if dcm_meta.samples_per_pixel == 1:
+        dcm_meta.photometric_interpretation = "MONOCHROME2"
+    elif dcm_meta.samples_per_pixel == 3:
+        ## do something from the colorspace
+        if jpeg_color_space == JCS_YCbCr:
+            h_samp_fact = cinfo.comp_info[0].h_samp_factor
+            v_samp_fact = cinfo.comp_info[0].v_samp_factor
+
+            if h_samp_fact==1 and v_samp_fact == 1:
+                dcm_meta.photometric_interpretation = "YBR_FULL"
+
+            elif h_samp_fact==2 and v_samp_fact in [1,2]:
+                dcm_meta.photometric_interpretation = "YBR_FULL_422"
+
+        elif jpeg_color_space == JCS_RGB:
+            dcm_meta.photometric_interpretation = "RGB"
+
     dcm_meta.rows = shape[0]
     dcm_meta.columns = shape[1]
-    dcm_meta.bits_allocated=
-    dcm_meta.bits_stored = 
-    dcm_meta.pixel_representation=
-    dcm_meta.high_bit
-    dcm_meta.planar_configuration
-    dcm_meta.pixel_data_format=    
-    return out
+    dcm_meta.bits_allocated=bits_allocated
+    dcm_meta.bits_stored = bit_stored
+    dcm_meta.pixel_representation=0 ## check this
+    dcm_meta.high_bit=high_bit
+    if dcm_meta.samples_per_pixel != 3:
+        dcm_meta.planar_configuration=-1
+    else:
+        dcm_meta.planar_configuration=0      # check this!
+    dcm_meta.pixel_data_format="int"
+
+    return (out,dcm_meta)
 
 
 ctypedef struct my_error_mgr:

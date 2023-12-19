@@ -137,8 +137,8 @@ def customize_build_default(EXTENSIONS, OPTIONS):
     import platform
 
 
-    if 'arch' not in platform.platform():
-        del EXTENSIONS['jpegls']  # CharLS 2.1 library not commonly available
+    #if 'arch' not in platform.platform():
+    #    del EXTENSIONS['jpegls']  # CharLS 2.1 library not commonly available
 
     if sys.platform == 'win32':
         pass

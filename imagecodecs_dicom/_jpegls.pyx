@@ -43,6 +43,8 @@ include '_shared.pxi'
 
 from charls cimport *
 
+from dcm_meta import DCMPixelMeta
+
 
 class JPEGLS:
     """JPEGLS codec constants."""
@@ -262,12 +264,146 @@ def jpegls_decode(data, out=None):
         charls_jpegls_decoder* decoder = NULL
         charls_interleave_mode interleave_mode
         charls_frame_info frameinfo
-        charls_color_transformation color_transformation
         # charls_spiff_header spiff_header
         # int32_t header_found
 
     if data is out:
         raise ValueError('cannot decode in-place')
+
+    try:
+        with nogil:
+            decoder = charls_jpegls_decoder_create()
+            if decoder == NULL:
+                raise JpeglsError('charls_jpegls_decoder_create', None)
+
+            ret = charls_jpegls_decoder_set_source_buffer(
+                decoder,
+                <void*> &src[0],
+                <size_t> srcsize
+            )
+            if ret:
+                raise JpeglsError(
+                    'charls_jpegls_decoder_set_source_buffer', ret
+                )
+
+            # ret = charls_jpegls_decoder_read_spiff_header(
+            #     decoder,
+            #     &spiff_header,
+            #     &header_found
+            # )
+            # if ret:
+            #     raise JpeglsError(
+            #         'charls_jpegls_decoder_read_spiff_header', ret
+            #     )
+
+            ret = charls_jpegls_decoder_read_header(decoder)
+            if ret:
+                raise JpeglsError('charls_jpegls_decoder_read_header', ret)
+
+            ret = charls_jpegls_decoder_get_frame_info(decoder, &frameinfo)
+            if ret:
+                raise JpeglsError('charls_jpegls_decoder_get_frame_info', ret)
+
+            ret = charls_jpegls_decoder_get_interleave_mode(
+                decoder,
+                &interleave_mode
+            )
+            if ret:
+                raise JpeglsError(
+                    'charls_jpegls_decoder_get_interleave_mode', ret
+                )
+
+            with gil:
+                if frameinfo.bits_per_sample <= 8:
+                    dtype = numpy.uint8
+                    itemsize = 1
+                elif frameinfo.bits_per_sample <= 16:
+                    dtype = numpy.uint16
+                    itemsize = 2
+                else:
+                    raise ValueError(
+                        'JpegLs bits_per_sample not supported: {}'.format(
+                            frameinfo.bits_per_sample
+                        )
+                    )
+
+                if frameinfo.component_count == 1:
+                    shape = (
+                        frameinfo.height,
+                        frameinfo.width
+                    )
+                    strides = (
+                        frameinfo.width * itemsize,
+                        itemsize
+                    )
+                elif interleave_mode == CHARLS_INTERLEAVE_MODE_NONE:
+                    # planar
+                    shape = (
+                        frameinfo.component_count,
+                        frameinfo.height,
+                        frameinfo.width
+                    )
+                    strides = (
+                        itemsize * frameinfo.width * frameinfo.height,
+                        itemsize * frameinfo.width,
+                        itemsize
+                    )
+                else:
+                    # contig
+                    # CHARLS_INTERLEAVE_MODE_LINE or
+                    # CHARLS_INTERLEAVE_MODE_SAMPLE
+                    shape = (
+                        frameinfo.height,
+                        frameinfo.width,
+                        frameinfo.component_count
+                    )
+                    strides = (
+                        itemsize * frameinfo.component_count * frameinfo.width,
+                        itemsize * frameinfo.component_count,
+                        itemsize
+                    )
+                out = _create_array(out, shape, dtype, strides=strides)
+                dst = out
+                dstsize = dst.nbytes
+
+            ret = charls_jpegls_decoder_decode_to_buffer(
+                decoder,
+                <void*> dst.data,
+                <size_t> dstsize,
+                0
+            )
+
+        if ret:
+            raise JpeglsError('charls_jpegls_decoder_decode_to_buffer', ret)
+
+    finally:
+        if decoder != NULL:
+            charls_jpegls_decoder_destroy(decoder)
+
+    if (
+        frameinfo.component_count > 1
+        and interleave_mode == CHARLS_INTERLEAVE_MODE_NONE
+    ):
+        out = numpy.moveaxis(out, 0, -1)
+
+    return out
+def jpegls_decode_header(data):
+    """Return decoded JPEGLS image."""
+    cdef:
+        const uint8_t[::1] src = data
+        ssize_t srcsize = src.size
+        ssize_t dstsize
+        ssize_t itemsize = 0
+        charls_jpegls_errc ret
+        charls_jpegls_decoder* decoder = NULL
+        charls_interleave_mode interleave_mode
+        charls_frame_info frameinfo
+        charls_color_transformation color_transformation
+        charls_spiff_header spiff_header
+        int32_t header_found
+        int32_t near_lossless
+
+
 
     bits_allocated=0
     bits_stored=0
@@ -331,67 +467,15 @@ def jpegls_decode(data, out=None):
                         )
                     )
 
-                bit_stored=frameinfo.bits_per_sample
+                bits_stored=frameinfo.bits_per_sample
                 high_bit=frameinfo.bits_per_sample-1
+                charls_jpegls_decoder_get_near_lossless(decoder,0,&near_lossless)
 
-                if frameinfo.component_count == 1:
-                    shape = (
-                        frameinfo.height,
-                        frameinfo.width
-                    )
-                    strides = (
-                        frameinfo.width * itemsize,
-                        itemsize
-                    )
-                elif interleave_mode == CHARLS_INTERLEAVE_MODE_NONE:
-                    # planar
-                    shape = (
-                        frameinfo.component_count,
-                        frameinfo.height,
-                        frameinfo.width
-                    )
-                    strides = (
-                        itemsize * frameinfo.width * frameinfo.height,
-                        itemsize * frameinfo.width,
-                        itemsize
-                    )
-                else:
-                    # contig
-                    # CHARLS_INTERLEAVE_MODE_LINE or
-                    # CHARLS_INTERLEAVE_MODE_SAMPLE
-                    shape = (
-                        frameinfo.height,
-                        frameinfo.width,
-                        frameinfo.component_count
-                    )
-                    strides = (
-                        itemsize * frameinfo.component_count * frameinfo.width,
-                        itemsize * frameinfo.component_count,
-                        itemsize
-                    )
-                out = _create_array(out, shape, dtype, strides=strides)
-                dst = out
-                dstsize = dst.nbytes
-
-            ret = charls_jpegls_decoder_decode_to_buffer(
-                decoder,
-                <void*> dst.data,
-                <size_t> dstsize,
-                0
-            )
-
-        if ret:
-            raise JpeglsError('charls_jpegls_decoder_decode_to_buffer', ret)
 
     finally:
         if decoder != NULL:
             charls_jpegls_decoder_destroy(decoder)
 
-    if (
-        frameinfo.component_count > 1
-        and interleave_mode == CHARLS_INTERLEAVE_MODE_NONE
-    ):
-        out = numpy.moveaxis(out, 0, -1)
 
     ## seup the dicom metada
     dcm_meta = DCMPixelMeta()
@@ -410,16 +494,21 @@ def jpegls_decode(data, out=None):
         else:
             dcm_meta.photometric_interpretation="UNKNOWN %d"%spiff_header.colorspace
 
-    dcm_meta.rows = shape[0]
-    dcm_meta.columns = shape[1]
+    dcm_meta.rows = frameinfo.height
+    dcm_meta.columns = frameinfo.width
     dcm_meta.bits_allocated=bits_allocated
-    dcm_meta.bits_stored = bit_stored
+    dcm_meta.bits_stored = bits_stored
     dcm_meta.pixel_representation=0 ## check this
     dcm_meta.high_bit=high_bit
     if dcm_meta.samples_per_pixel != 3:
         dcm_meta.planar_configuration=-1
     else:
-        dcm_meta.planar_configuration=1
+        dcm_meta.planar_configuration=0
     dcm_meta.pixel_data_format="int"
 
-    return (out,dcm_meta)
+    if near_lossless == 0:
+        dcm_meta.transfer_syntax_uid="1.2.840.10008.1.2.​4.​80"
+    else:
+        dcm_meta.transfer_syntax_uid="1.2.840.10008.1.2.​4.​81"
+
+    return dcm_meta

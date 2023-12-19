@@ -449,7 +449,6 @@ def jpeg2k_decode(
         opj_image_t* image = NULL
         opj_stream_t* stream = NULL
         opj_image_comp_t* comp = NULL
-        opj_codestream_info_v2_t* cstrminfo = NULL
         opj_dparameters_t parameters
         OPJ_BOOL ret = OPJ_FALSE
         OPJ_CODEC_FORMAT codecformat
@@ -459,8 +458,6 @@ def jpeg2k_decode(
         int verbosity = verbose
         bytes sig
         bint contig = not planar
-
-    ph_interp = ""
 
     if data is out:
         raise ValueError('cannot decode in-place')
@@ -551,7 +548,6 @@ def jpeg2k_decode(
 
             if image.color_space == OPJ_CLRSPC_SYCC:
                 color_sycc_to_rgb(image)
-                ## color space is
             if image.icc_profile_buf:
                 color_apply_icc_profile(image)
                 free(image.icc_profile_buf)
@@ -580,12 +576,6 @@ def jpeg2k_decode(
                 itemsize = 4
             elif itemsize < 1 or itemsize > 4:
                 raise Jpeg2kError(f'unsupported itemsize {itemsize}')
-
-        ## BITS ALLOCATDE AND bit_stored
-        bits_allocated = itemsize*8
-        bits_stored = prec
-        high_bit = bits_allocated-1
-        pixel_representation = sgnd
 
         dtype = '{}{}'.format('i' if sgnd else 'u', itemsize)
         if samples == 1:
@@ -685,7 +675,125 @@ def jpeg2k_decode(
                     for j in range(bandsize):
                         u4[j * samples] = <uint32_t> band[j]
 
-            ## get codestream info
+    finally:
+        if stream != NULL:
+            opj_stream_destroy(stream)
+        if codec != NULL:
+            opj_destroy_codec(codec)
+        if image != NULL:
+            opj_image_destroy(image)
+
+    return out
+
+def jpeg2k_decode_header(
+    data
+):
+    """Return decoded JPEG 2000 image."""
+    cdef:
+        const uint8_t[::1] src = data
+        int32_t* band
+        uint32_t* u4
+        uint16_t* u2
+        uint8_t* u1
+        int32_t* i4
+        int16_t* i2
+        int8_t* i1
+        ssize_t itemsize
+        memopj_t memopj
+        opj_codec_t* codec = NULL
+        opj_image_t* image = NULL
+        opj_stream_t* stream = NULL
+        opj_image_comp_t* comp = NULL
+        opj_codestream_info_v2_t* cstrminfo = NULL
+        opj_dparameters_t parameters
+        OPJ_BOOL ret = OPJ_FALSE
+        OPJ_CODEC_FORMAT codecformat
+        OPJ_UINT32 sgnd, prec, width, height
+        ssize_t i, j, k, bandsize, samples
+        int verbosity = 2
+        bytes sig
+
+    ph_interp = ""
+
+    sig = bytes(src[:12])
+    if sig[:4] == b'\xff\x4f\xff\x51':
+        codecformat = OPJ_CODEC_J2K
+    elif (
+        sig == b'\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a'
+        or sig[:4] == b'\x0d\x0a\x87\x0a'
+    ):
+        codecformat = OPJ_CODEC_JP2
+    else:
+        raise Jpeg2kError('not a J2K or JP2 data stream')
+
+    try:
+        memopj.data = <OPJ_UINT8*> &src[0]
+        memopj.size = src.size
+        memopj.offset = 0
+        memopj.written = 0
+
+        with nogil:
+            stream = opj_memstream_create(&memopj, OPJ_TRUE)
+            if stream == NULL:
+                raise Jpeg2kError('opj_memstream_create failed')
+
+            codec = opj_create_decompress(codecformat)
+            if codec == NULL:
+                raise Jpeg2kError('opj_create_decompress failed')
+
+            if verbosity > 0:
+                opj_set_error_handler(
+                    codec, <opj_msg_callback> j2k_error_callback, NULL
+                )
+                if verbosity > 1:
+                    opj_set_warning_handler(
+                        codec, <opj_msg_callback> j2k_warning_callback, NULL
+                    )
+                    if verbosity > 2:
+                        opj_set_info_handler(
+                            codec, <opj_msg_callback> j2k_info_callback, NULL
+                        )
+
+            opj_set_default_decoder_parameters(&parameters)
+
+            ret = opj_setup_decoder(codec, &parameters)
+            if ret == OPJ_FALSE:
+                raise Jpeg2kError('opj_setup_decoder failed')
+
+
+            ret = opj_codec_set_threads(codec, 1)
+            if ret == OPJ_FALSE:
+                raise Jpeg2kError('opj_codec_set_threads failed')
+
+            ret = opj_read_header(stream, codec, &image)
+            if ret == OPJ_FALSE:
+                raise Jpeg2kError('opj_read_header failed')
+
+            ret = opj_end_decompress(codec, stream)
+            if ret == OPJ_FALSE:
+                raise Jpeg2kError('opj_decode or opj_end_decompress failed')
+
+
+            comp = &image.comps[0]
+            sgnd = comp.sgnd
+            prec = comp.prec
+            height = comp.h * comp.dy
+            width = comp.w * comp.dx
+            samples = <ssize_t> image.numcomps
+            itemsize = (prec + 7) // 8
+
+
+        ## BITS ALLOCATDE AND bit_stored
+        bits_allocated = itemsize*8
+        bits_stored = prec
+        high_bit = bits_allocated-1
+        pixel_representation = sgnd
+
+
+
+
+
+        ## get codestream info
         cstrminfo = opj_get_cstr_info(codec)
         mct = cstrminfo.tile_info.mct
         reversible=cstrminfo.tile_info.tccp_info.qmfbid
@@ -717,8 +825,8 @@ def jpeg2k_decode(
     dcm_meta = DCMPixelMeta()
     dcm_meta.samples_per_pixel = image.numcomps
     dcm_meta.photometric_interpretation = ph_interp
-    dcm_meta.rows = shape[0]
-    dcm_meta.columns = shape[1]
+    dcm_meta.rows = height
+    dcm_meta.columns = width
     dcm_meta.bits_allocated=bits_allocated
     dcm_meta.bits_stored = bits_stored
     dcm_meta.pixel_representation=pixel_representation
@@ -728,12 +836,14 @@ def jpeg2k_decode(
     else:
         dcm_meta.planar_configuration=0
     dcm_meta.pixel_data_format="int"
+    if reversible:
+        dcm_meta.transfer_syntax_uid = "1.2.840.10008.1.2.​4.​90"
+    else:
+        dcm_meta.transfer_syntax_uid = "1.2.840.10008.1.2.​4.​91"
 
 
 
-
-
-    return out
+    return dcm_meta
 
 
 ctypedef struct memopj_t:

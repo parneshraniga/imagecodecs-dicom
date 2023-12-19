@@ -340,8 +340,7 @@ def png_decode(data, out=None):
                 pass
             elif color_type == PNG_COLOR_TYPE_PALETTE:
                 # samples = 3 or 4
-                pass
-
+                png_set_palette_to_rgb(png_ptr)
             elif color_type == PNG_COLOR_TYPE_RGB_ALPHA:
                 # samples = 4
                 pass
@@ -356,32 +355,6 @@ def png_decode(data, out=None):
             samples = <int> (
                 png_get_rowbytes(png_ptr, info_ptr) / (width * itemsize)
             )
-
-        if color_type == PNG_COLOR_TYPE_GRAY:
-            # samples = 1
-            samples_per_pixel=1
-            photometric_interpretation="MONOCHROME2"
-
-        elif color_type == PNG_COLOR_TYPE_GRAY_ALPHA:
-            # samples = 2
-            samples_per_pixel=2
-
-        elif color_type == PNG_COLOR_TYPE_RGB:
-            # samples = 3
-            samples_per_pixel=3
-            photometric_interpretation="RGB"
-
-
-        elif color_type == PNG_COLOR_TYPE_PALETTE:
-            # samples = 3 or 4
-            png_set_palette_to_rgb(png_ptr)
-            photometric_interpretation="PALETTE COLOR"
-        elif color_type == PNG_COLOR_TYPE_RGB_ALPHA:
-            # samples = 4
-            samples_per_pixel=4
-
-        bits_allocated=itemsize*8
-        bits_stored=bit_depth
 
         dtype = numpy.dtype(f'u{itemsize}')
         if samples > 1:
@@ -412,27 +385,6 @@ def png_decode(data, out=None):
             png_destroy_read_struct(&png_ptr, &info_ptr, NULL)
         elif png_ptr != NULL:
             png_destroy_read_struct(&png_ptr, NULL, NULL)
-
-    ## bit_depth
-
-    ## seup the dicom metada
-    dcm_meta = DCMPixelMeta()
-    dcm_meta.samples_per_pixel = samples_per_pixel
-    dcm_meta.photometric_interpretation = photometric_interpretation
-
-
-    dcm_meta.rows = shape[0]
-    dcm_meta.columns = shape[1]
-    dcm_meta.bits_allocated=bits_allocated
-    dcm_meta.bits_stored = bits_stored
-    dcm_meta.pixel_representation=0 ## check this
-    dcm_meta.high_bit=bits_stored-1
-
-    if dcm_meta.samples_per_pixel != 3:
-        dcm_meta.planar_configuration=-1
-    else:
-        dcm_meta.planar_configuration=0      # check this!
-    dcm_meta.pixel_data_format="int"
 
     return out
 

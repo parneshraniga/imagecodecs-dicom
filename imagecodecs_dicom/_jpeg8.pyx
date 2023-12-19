@@ -47,8 +47,7 @@ from cython.operator cimport dereference as deref
 
 from libc.setjmp cimport setjmp, longjmp, jmp_buf
 
-from dcm_meta import DCMPixelMeta
-
+from dcm_meta import DCMPixelMeta, get_tsu_from_image_jpeg
 
 class JPEG8:
     """JPEG8 codec constants."""
@@ -409,35 +408,112 @@ def jpeg8_decode(
             dst = out
             dstsize = dst.nbytes
             rowstride = dst.strides[0] // dst.itemsize
-        bits_stored = 0
-        bits_allocated = 0
-        high_bit = 0
+
         memset(<void*> dst.data, 0, dstsize)
         if cinfo.data_precision <= 8:
             rowpointer8 = <JSAMPROW> dst.data
-            bits_allocated = 8
-            bits_stored = 8
-            high_bit = 7
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg_read_scanlines(&cinfo, &rowpointer8, 1)
                 rowpointer8 += rowstride
         elif cinfo.data_precision == 12:
             rowpointer12 = <J12SAMPROW> dst.data
-            bits_allocated = 16
-            bit_stored = 12
-            high_bit = 11
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg12_read_scanlines(&cinfo, &rowpointer12, 1)
                 rowpointer12 += rowstride
         else:
             # elif cinfo.data_precision == 16:
             rowpointer16 = <J16SAMPROW> dst.data
-            bits_allocated = 16
-            bits_stored = 16
-            high_bit = 15
             while cinfo.output_scanline < cinfo.output_height:
                 jpeg16_read_scanlines(&cinfo, &rowpointer16, 1)
                 rowpointer16 += rowstride
+        jpeg_finish_decompress(&cinfo)
+        jpeg_destroy_decompress(&cinfo)
+
+    return out
+
+
+def jpeg8_decode_header(
+    data
+):
+    """Return decoded JPEG image."""
+    cdef:
+        numpy.ndarray dst
+        const uint8_t[::1] src = data
+
+        ssize_t srcsize = src.size
+        my_error_mgr err
+        jpeg_decompress_struct cinfo
+        JDIMENSION width = 0
+        JDIMENSION height = 0
+        char msg[200]  # JMSG_LENGTH_MAX
+
+
+
+    if srcsize >= 4294967296U:
+        # limit to 4 GB
+        raise ValueError('data too large')
+
+    is_lossless = False
+    is_baseline = False
+
+    with nogil:
+
+        cinfo.err = jpeg_std_error(&err.pub)
+        err.pub.error_exit = my_error_exit
+        err.pub.output_message = my_output_message
+        if setjmp(err.setjmp_buffer):
+            # msg = err.pub.jpeg_message_table[err.pub.msg_code]
+            msg[0] = b'\x00'
+            err.pub.format_message(<jpeg_common_struct*> &cinfo, &msg[0])
+            jpeg_destroy_decompress(&cinfo)
+            raise Jpeg8Error(msg.decode())
+
+        jpeg_create_decompress(&cinfo)
+        cinfo.do_fancy_upsampling = True
+
+        jpeg_mem_src(&cinfo, &src[0], <unsigned long> srcsize)
+        jpeg_read_header(&cinfo, 1)
+
+
+        jpeg_start_decompress(&cinfo)
+
+
+        predictor_selection_value= 1
+        color_space = 0
+        with gil:
+            # if (cinfo.output_components not in
+            #     _jcs_colorspace_samples(out_color_space)):
+            #     raise ValueError('invalid output shape')
+
+            shape = cinfo.output_height, cinfo.output_width
+            if cinfo.output_components > 1:
+                shape += cinfo.output_components,
+
+            is_lossless = cinfo.master.lossless
+            is_baseline = cinfo.is_baseline
+            predictor_selection_value=cinfo.Ss
+            color_space = cinfo.jpeg_color_space
+
+
+        bits_stored = 0
+        bits_allocated = 0
+        high_bit = 0
+        if cinfo.data_precision <= 8:
+            bits_allocated = 8
+            bits_stored = 8
+            high_bit = 7
+
+        elif cinfo.data_precision == 12:
+            bits_allocated = 16
+            bit_stored = 12
+            high_bit = 11
+
+        else:
+            # elif cinfo.data_precision == 16:
+            bits_allocated = 16
+            bits_stored = 16
+            high_bit = 15
+
         jpeg_finish_decompress(&cinfo)
         jpeg_destroy_decompress(&cinfo)
 
@@ -448,7 +524,7 @@ def jpeg8_decode(
         dcm_meta.photometric_interpretation = "MONOCHROME2"
     elif dcm_meta.samples_per_pixel == 3:
         ## do something from the colorspace
-        if jpeg_color_space == JCS_YCbCr:
+        if color_space == JCS_YCbCr:
             h_samp_fact = cinfo.comp_info[0].h_samp_factor
             v_samp_fact = cinfo.comp_info[0].v_samp_factor
 
@@ -458,7 +534,7 @@ def jpeg8_decode(
             elif h_samp_fact==2 and v_samp_fact in [1,2]:
                 dcm_meta.photometric_interpretation = "YBR_FULL_422"
 
-        elif jpeg_color_space == JCS_RGB:
+        elif color_space == JCS_RGB:
             dcm_meta.photometric_interpretation = "RGB"
 
     dcm_meta.rows = shape[0]
@@ -472,8 +548,9 @@ def jpeg8_decode(
     else:
         dcm_meta.planar_configuration=0      # check this!
     dcm_meta.pixel_data_format="int"
+    dcm_meta.transfer_syntax_uid = get_tsu_from_image_jpeg(is_lossless, is_baseline, predictor_selection_value)
 
-    return (out,dcm_meta)
+    return dcm_meta
 
 
 ctypedef struct my_error_mgr:

@@ -970,8 +970,6 @@ cdef extern from 'jpeglib.h':
     struct jpeg_entropy_encoder:
         long dummy
 
-    struct jpeg_decomp_master:
-        long dummy
 
     struct jpeg_d_main_controller:
         long dummy
@@ -1002,3 +1000,18 @@ cdef extern from 'jpeglib.h':
 
     struct jpeg_color_quantizer:
         long dummy
+
+
+cdef extern from 'jpegint.h':
+
+    struct jpeg_decomp_master:
+        void (*prepare_for_output_pass) (j_decompress_ptr cinfo);
+        void (*finish_output_pass) (j_decompress_ptr cinfo);
+        boolean is_dummy_pass
+        boolean lossless
+        JDIMENSION first_iMCU_col
+        JDIMENSION last_iMCU_col
+        JDIMENSION first_MCU_col[10]
+        JDIMENSION last_MCU_col[10]
+        boolean jinit_upsampler_no_alloc
+        JDIMENSION last_good_iMCU_row

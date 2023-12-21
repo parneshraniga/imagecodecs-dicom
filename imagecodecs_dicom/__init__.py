@@ -5,7 +5,7 @@ from __future__ import annotations
 
 __all__: list[str] = []
 
-from .imagecodecs import (
+from .imagecodecs_dicom import (
     __doc__,
     __version__,
     __getattr__,

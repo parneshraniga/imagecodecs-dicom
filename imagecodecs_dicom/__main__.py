@@ -12,7 +12,7 @@ import sys
 from matplotlib.pyplot import show
 from tifffile import Timer, askopenfilename, imshow
 
-from .imagecodecs import imread
+from .imagecodecs_dicom import imread
 
 
 def main(argv=None, verbose: bool = True) -> int:

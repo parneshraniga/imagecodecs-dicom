@@ -648,119 +648,10 @@ _MODULES: dict[str, list[str]] = {
         'xor_check',
         'xor_version',
     ],
-    '_aec': [
-        'AEC',
-        'AecError',
-        'aec_encode',
-        'aec_decode',
-        'aec_check',
-        'aec_version',
-    ],
-    '_apng': [
-        'APNG',
-        'ApngError',
-        'apng_encode',
-        'apng_decode',
-        'apng_check',
-        'apng_version',
-    ],
-    '_avif': [
-        'AVIF',
-        'AvifError',
-        'avif_encode',
-        'avif_decode',
-        'avif_check',
-        'avif_version',
-    ],
-    '_bitshuffle': [
-        'BITSHUFFLE',
-        'BitshuffleError',
-        'bitshuffle_encode',
-        'bitshuffle_decode',
-        'bitshuffle_check',
-        'bitshuffle_version',
-    ],
-    '_blosc': [
-        'BLOSC',
-        'BloscError',
-        'blosc_encode',
-        'blosc_decode',
-        'blosc_check',
-        'blosc_version',
-    ],
-    '_blosc2': [
-        'BLOSC2',
-        'Blosc2Error',
-        'blosc2_encode',
-        'blosc2_decode',
-        'blosc2_check',
-        'blosc2_version',
-    ],
-    '_brotli': [
-        'BROTLI',
-        'BrotliError',
-        'brotli_encode',
-        'brotli_decode',
-        'brotli_check',
-        'brotli_version',
-    ],
-    '_brunsli': [
-        'BRUNSLI',
-        'BrunsliError',
-        'brunsli_encode',
-        'brunsli_decode',
-        'brunsli_check',
-        'brunsli_version',
-    ],
-    '_bz2': [
-        'BZ2',
-        'Bz2Error',
-        'bz2_encode',
-        'bz2_decode',
-        'bz2_check',
-        'bz2_version',
-    ],
-    '_cms': [
-        'CMS',
-        'CmsError',
-        'cms_transform',
-        'cms_profile',
-        'cms_profile_validate',
-        'cms_encode',
-        'cms_decode',
-        'cms_check',
-        'cms_version',
-    ],
-    '_bcn': [
-        'BCN',
-        'BcnError',
-        'bcn_encode',
-        'bcn_decode',
-        'bcn_check',
-        'bcn_version',
-        'DDS',
-        'DdsError',
-        'dds_encode',
-        'dds_decode',
-        'dds_check',
-        'dds_version',
-    ],
-    '_deflate': [
-        'DEFLATE',
-        'DeflateError',
-        'deflate_crc32',
-        'deflate_adler32',
-        'deflate_encode',
-        'deflate_decode',
-        'deflate_check',
-        'deflate_version',
-        'GZIP',
-        'GzipError',
-        'gzip_encode',
-        'gzip_decode',
-        'gzip_check',
-        'gzip_version',
-    ],
+
+
+
+
     '_gif': [
         'GIF',
         'GifError',
@@ -770,32 +661,7 @@ _MODULES: dict[str, list[str]] = {
         'gif_check',
         'gif_version',
     ],
-    '_h5checksum': [
-        'H5CHECKSUM',
-        'h5checksum_version',
-        'h5checksum_fletcher32',
-        'h5checksum_lookup3',
-        'h5checksum_crc',
-        'h5checksum_metadata',
-        'h5checksum_hash_string',
-    ],
-    '_heif': [
-        'HEIF',
-        'HeifError',
-        'heif_encode',
-        'heif_decode',
-        'heif_check',
-        'heif_version',
-    ],
-    '_jetraw': [
-        'JETRAW',
-        'JetrawError',
-        'jetraw_init',
-        'jetraw_encode',
-        'jetraw_decode',
-        'jetraw_check',
-        'jetraw_version',
-    ],
+
     '_jpeg2k': [
         'JPEG2K',
         'Jpeg2kError',
@@ -823,40 +689,8 @@ _MODULES: dict[str, list[str]] = {
         'jpegls_check',
         'jpegls_version',
     ],
-    '_jpegsof3': [
-        'JPEGSOF3',
-        'Jpegsof3Error',
-        'jpegsof3_encode',
-        'jpegsof3_decode',
-        'jpegsof3_check',
-        'jpegsof3_version',
-    ],
-    '_jpegxl': [
-        'JPEGXL',
-        'JpegxlError',
-        'jpegxl_encode',
-        'jpegxl_decode',
-        'jpegxl_encode_jpeg',
-        'jpegxl_decode_jpeg',
-        'jpegxl_check',
-        'jpegxl_version',
-    ],
-    '_jpegxr': [
-        'JPEGXR',
-        'JpegxrError',
-        'jpegxr_encode',
-        'jpegxr_decode',
-        'jpegxr_check',
-        'jpegxr_version',
-    ],
-    '_lerc': [
-        'LERC',
-        'LercError',
-        'lerc_encode',
-        'lerc_decode',
-        'lerc_check',
-        'lerc_version',
-    ],
+
+
     '_ljpeg': [
         'LJPEG',
         'LjpegError',
@@ -865,76 +699,8 @@ _MODULES: dict[str, list[str]] = {
         'ljpeg_check',
         'ljpeg_version',
     ],
-    '_lz4': [
-        'LZ4',
-        'Lz4Error',
-        'lz4_encode',
-        'lz4_decode',
-        'lz4_check',
-        'lz4_version',
-        'LZ4H5',
-        'Lz4h5Error',
-        'lz4h5_encode',
-        'lz4h5_decode',
-        'lz4h5_check',
-        'lz4h5_version',
-    ],
-    '_lz4f': [
-        'LZ4F',
-        'Lz4fError',
-        'lz4f_encode',
-        'lz4f_decode',
-        'lz4f_check',
-        'lz4f_version',
-    ],
-    '_lzf': [
-        'LZF',
-        'LzfError',
-        'lzf_encode',
-        'lzf_decode',
-        'lzf_check',
-        'lzf_version',
-    ],
-    '_lzfse': [
-        'LZFSE',
-        'LzfseError',
-        'lzfse_encode',
-        'lzfse_decode',
-        'lzfse_check',
-        'lzfse_version',
-    ],
-    '_lzham': [
-        'LZHAM',
-        'LzhamError',
-        'lzham_encode',
-        'lzham_decode',
-        'lzham_check',
-        'lzham_version',
-    ],
-    '_lzma': [
-        'LZMA',
-        'LzmaError',
-        'lzma_encode',
-        'lzma_decode',
-        'lzma_check',
-        'lzma_version',
-    ],
-    '_mozjpeg': [
-        'MOZJPEG',
-        'MozjpegError',
-        'mozjpeg_encode',
-        'mozjpeg_decode',
-        'mozjpeg_check',
-        'mozjpeg_version',
-    ],
-    '_pglz': [
-        'PGLZ',
-        'PglzError',
-        'pglz_encode',
-        'pglz_decode',
-        'pglz_check',
-        'pglz_version',
-    ],
+
+
     '_png': [
         'PNG',
         'PngError',
@@ -944,123 +710,11 @@ _MODULES: dict[str, list[str]] = {
         'png_check',
         'png_version',
     ],
-    '_qoi': [
-        'QOI',
-        'QoiError',
-        'qoi_encode',
-        'qoi_decode',
-        'qoi_check',
-        'qoi_version',
-    ],
-    '_quantize': [
-        'QUANTIZE',
-        'QuantizeError',
-        'quantize_encode',
-        'quantize_decode',
-        'quantize_check',
-        'quantize_version',
-    ],
-    '_rgbe': [
-        'RGBE',
-        'RgbeError',
-        'rgbe_encode',
-        'rgbe_decode',
-        'rgbe_check',
-        'rgbe_version',
-    ],
-    '_rcomp': [
-        'RCOMP',
-        'RcompError',
-        'rcomp_encode',
-        'rcomp_decode',
-        'rcomp_check',
-        'rcomp_version',
-    ],
-    '_snappy': [
-        'SNAPPY',
-        'SnappyError',
-        'snappy_encode',
-        'snappy_decode',
-        'snappy_check',
-        'snappy_version',
-    ],
-    '_spng': [
-        'SPNG',
-        'SpngError',
-        'spng_encode',
-        'spng_decode',
-        'spng_check',
-        'spng_version',
-    ],
-    '_szip': [
-        'SZIP',
-        'SzipError',
-        'szip_encode',
-        'szip_decode',
-        'szip_check',
-        'szip_version',
-        'szip_params',
-    ],
-    '_tiff': [
-        'TIFF',
-        'TiffError',
-        'tiff_encode',
-        'tiff_decode',
-        'tiff_check',
-        'tiff_version',
-    ],
-    '_webp': [
-        'WEBP',
-        'WebpError',
-        'webp_encode',
-        'webp_decode',
-        'webp_check',
-        'webp_version',
-    ],
-    '_zfp': [
-        'ZFP',
-        'ZfpError',
-        'zfp_encode',
-        'zfp_decode',
-        'zfp_check',
-        'zfp_version',
-    ],
-    '_zlib': [
-        'ZLIB',
-        'ZlibError',
-        'zlib_crc32',
-        'zlib_adler32',
-        'zlib_encode',
-        'zlib_decode',
-        'zlib_check',
-        'zlib_version',
-    ],
-    '_zlibng': [
-        'ZLIBNG',
-        'ZlibngError',
-        'zlibng_crc32',
-        'zlibng_adler32',
-        'zlibng_encode',
-        'zlibng_decode',
-        'zlibng_check',
-        'zlibng_version',
-    ],
-    '_zopfli': [
-        'ZOPFLI',
-        'ZopfliError',
-        'zopfli_encode',
-        'zopfli_decode',
-        'zopfli_check',
-        'zopfli_version',
-    ],
-    '_zstd': [
-        'ZSTD',
-        'ZstdError',
-        'zstd_encode',
-        'zstd_decode',
-        'zstd_check',
-        'zstd_version',
-    ],
+
+
+
+
+
 }
 
 # map extra to existing attributes
@@ -1075,8 +729,6 @@ _COMPATIBILITY: dict[str, str] = {
     # deprecated
     'j2k_encode': 'jpeg2k_encode',
     'j2k_decode': 'jpeg2k_decode',
-    'jxr_encode': 'jpegxr_encode',
-    'jxr_decode': 'jpegxr_decode',
     # 'JPEG12': 'JPEG8',
     # 'Jpeg12Error': 'Jpeg8Error',
     # 'jpeg12_encode': 'jpeg8_encode',
@@ -1111,6 +763,7 @@ def _add_codec(
         attributes = (
             f'{codec}_encode',
             f'{codec}_decode',
+            f'{codec}_decode_header',
             f'{codec}_check',
             f'{codec}_version',
             f'{codec.capitalize()}Error',
@@ -1154,7 +807,7 @@ def __getattr__(name: str, /) -> Any:
         if module_name in _IMPORTED:
             # extension module was imported in another thread
             # while this thread was waiting for lock
-            return getattr(imagecodecs, name)
+            return getattr(imagecodecs_dicom, name)
 
         try:
             module = importlib.import_module('.' + module_name, 'imagecodecs')
@@ -1176,11 +829,11 @@ def __getattr__(name: str, /) -> Any:
             attr = getattr(module, n, None)
             if attr is None:
                 attr = _stub(n, module)
-            setattr(imagecodecs, n, attr)
+            setattr(imagecodecs_dicom, n, attr)
 
-        attr = getattr(imagecodecs, name)
+        attr = getattr(imagecodecs_dicom, name)
         if name != name_:
-            setattr(imagecodecs, name_, attr)
+            setattr(imagecodecs_dicom, name_, attr)
 
         _IMPORTED.add(module_name)
         return attr
@@ -1301,12 +954,12 @@ def _codecs(available: bool | None = None, /) -> tuple[str, ...]:
         return tuple(
             c
             for c in codecs
-            if getattr(getattr(imagecodecs, c.upper()), 'available')
+            if getattr(getattr(imagecodecs_dicom, c.upper()), 'available')
         )
     return tuple(
         c
         for c in codecs
-        if not getattr(getattr(imagecodecs, c.upper()), 'available')
+        if not getattr(getattr(imagecodecs_dicom, c.upper()), 'available')
     )
 
 
@@ -1319,15 +972,15 @@ def version(
 
     """
     versions: tuple[str, ...] = (
-        f'imagecodecs {__version__}',
-        imagecodecs.cython_version(),
-        imagecodecs.numpy_version(),
-        imagecodecs.numpy_abi_version(),
-        imagecodecs.imcd_version(),
+        f'imagecodecs_dicom {__version__}',
+        imagecodecs_dicom.cython_version(),
+        imagecodecs_dicom.numpy_version(),
+        imagecodecs_dicom.numpy_abi_version(),
+        imagecodecs_dicom.imcd_version(),
         *sorted(
             # use set to filter duplicates
             {
-                str(getattr(imagecodecs, v)())
+                str(getattr(imagecodecs_dicom, v)())
                 for v in _ATTRIBUTES
                 if v.endswith('_version')
                 and v
@@ -1380,26 +1033,15 @@ def imread(
         codecs.extend(
             c
             for c in (
-                'tiff',
-                'apng',
                 'png',
                 'gif',
-                'webp',
                 'jpeg8',
                 'ljpeg',
                 'jpeg2k',
                 'jpegls',
-                'jpegxr',
-                'jpegxl',
-                'avif',
-                'heif',
                 # 'brunsli',
                 # 'exr',
-                'zfp',
-                'lerc',
-                'rgbe',
                 # 'jpegsof3',
-                'numpy',
             )
             if c not in codecs
         )
@@ -1445,7 +1087,7 @@ def imread(
             func = codec
         else:
             try:
-                func = getattr(imagecodecs, codec + '_decode')
+                func = getattr(imagecodecs_dicom, codec + '_decode')
                 assert callable(func)
             except Exception as exc:
                 exceptions.append(f'{repr(codec).upper()}: {exc}')
@@ -1453,9 +1095,7 @@ def imread(
 
         numthreads = kwargs.pop('numthreads', None)
         if numthreads is not None and func.__name__.split('_')[0] not in {
-            'avif',
             'jpeg2k',
-            'jpegxl',
         }:
             numthreads = None
 
@@ -1507,7 +1147,7 @@ def imwrite(
 
         codec = _imcodecs().get(ext, ext)
         try:
-            codec = getattr(imagecodecs, codec + '_encode')
+            codec = getattr(imagecodecs_dicom, codec + '_encode')
         except AttributeError as exc:
             raise ValueError(f'invalid codec {codec!r}') from exc
 
@@ -1515,7 +1155,7 @@ def imwrite(
         codec = codec.lower()
         codec = _imcodecs().get(codec, codec)
         try:
-            codec = getattr(imagecodecs, codec + '_encode')
+            codec = getattr(imagecodecs_dicom, codec + '_encode')
         except AttributeError as exc:
             raise ValueError(f'invalid codec {codec!r}') from exc
 
@@ -1537,20 +1177,9 @@ def _imcodecs(_codecs: dict[str, str] = {}) -> dict[str, str]:
     with _LOCK:
         if not _codecs:
             codecs = {
-                'apng': ('apng',),
-                'avif': ('avif', 'avifs'),
-                # 'bmp': ('bmp', 'dip', 'rle'),
-                'brunsli': ('brn',),
-                'dds': ('dds',),
-                # 'exr': ('exr',),
+
                 'gif': ('gif',),
-                'heif': (
-                    'heif',
-                    'heic',
-                    'heifs',
-                    'heics',
-                    'hif',  # 'avci', 'avcs'
-                ),
+
                 'jpeg8': ('jpg', 'jpeg', 'jpe', 'jfif', 'jfi', 'jif'),
                 'jpeg2k': (
                     'j2k',
@@ -1563,19 +1192,9 @@ def _imcodecs(_codecs: dict[str, str] = {}) -> dict[str, str]:
                     'jph',  # HTJ2K with JP2 boxes
                     'jhc',  # HTJ2K codestream
                 ),
-                'jpegls': ('jls',),
-                'jpegxl': ('jxl',),
-                'jpegxr': ('jxr', 'hdp', 'wdp'),
-                'lerc': ('lerc1', 'lerc2'),
                 'ljpeg': ('ljp', 'ljpg', 'ljpeg'),
-                'numpy': ('npy', 'npz'),
                 'png': ('png',),
-                'qoi': ('qoi',),
-                'rgbe': ('hdr', 'rgbe', 'pic'),
-                'tiff': ('tif', 'tiff', 'ptif', 'ptiff', 'tf8', 'tf2', 'btf'),
                 # 'tga': ('tga'),
-                'webp': ('webp', 'webm'),
-                'zfp': ('zfp',),
             }
             _codecs.update(
                 (ext, codec) for codec, exts in codecs.items() for ext in exts
@@ -1698,7 +1317,7 @@ def jpeg_decode(
     if header is not None:
         data = header + data + b'\xff\xd9'
     try:
-        return imagecodecs.jpeg8_decode(
+        return imagecodecs_dicom.jpeg8_decode(
             data,
             tables=tables,
             colorspace=colorspace,
@@ -1717,7 +1336,7 @@ def jpeg_decode(
             or 'SOF type' in msg
         ):
             try:
-                return imagecodecs.ljpeg_decode(data, out=out)
+                return imagecodecs_dicom.ljpeg_decode(data, out=out)
             except Exception:
                 pass
         # elif 'Empty JPEG image' in msg:
@@ -1743,10 +1362,10 @@ def jpeg_encode(
 ) -> bytes | bytearray:
     """Return JPEG encoded image."""
     if lossless and bitspersample not in {None, 8, 12, 16}:
-        return imagecodecs.ljpeg_encode(
+        return imagecodecs_dicom.ljpeg_encode(
             data, bitspersample=bitspersample, out=out
         )
-    return imagecodecs.jpeg8_encode(
+    return imagecodecs_dicom.jpeg8_encode(
         data,
         level=level,
         colorspace=colorspace,
@@ -1761,4 +1380,4 @@ def jpeg_encode(
     )
 
 
-imagecodecs = sys.modules['imagecodecs']
+imagecodecs_dicom = sys.modules['imagecodecs_dicom']

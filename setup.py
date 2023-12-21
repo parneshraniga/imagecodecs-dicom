@@ -95,8 +95,8 @@ def ext(**kwargs):
 
 
 OPTIONS = {
-    'include_dirs': ['imagecodecs_dicom'],
-    'library_dirs': [],
+    'include_dirs': ['imagecodecs_dicom','/opt/libjpeg-turbo/include/','/home/ran112/Dev/libjpeg-turbo-3.0.1/'],
+    'library_dirs': ['/opt/libjpeg-turbo/lib64'],
     'libraries': ['m'] if sys.platform != 'win32' else [],
     'define_macros': [
         # ('CYTHON_TRACE_NOGIL', '1'),
@@ -127,7 +127,7 @@ EXTENSIONS = {
         sources=[],
         libraries=['jpeg'],
     ),
-    'jpegls': ext(libraries=['charls']),
+#    'jpegls': ext(libraries=['charls']),
     'png': ext(libraries=['png']),
 }
 

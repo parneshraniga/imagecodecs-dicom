@@ -47,7 +47,7 @@ from openjpeg cimport *
 
 from libc.math cimport log
 
-from dcm_meta import DCMPixelMeta
+from imagecodecs_dicom.dcm_meta import DCMPixelMeta
 
 class JPEG2K:
     """JPEG2K codec constants."""

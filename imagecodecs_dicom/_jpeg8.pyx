@@ -47,7 +47,7 @@ from cython.operator cimport dereference as deref
 
 from libc.setjmp cimport setjmp, longjmp, jmp_buf
 
-from dcm_meta import DCMPixelMeta, get_tsu_from_image_jpeg
+from imagecodecs_dicom.dcm_meta import DCMPixelMeta, get_tsu_from_image_jpeg
 
 class JPEG8:
     """JPEG8 codec constants."""

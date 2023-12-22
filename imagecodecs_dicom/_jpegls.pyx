@@ -43,7 +43,7 @@ include '_shared.pxi'
 
 from charls cimport *
 
-from dcm_meta import DCMPixelMeta
+from imagecodecs_dicom.dcm_meta import DCMPixelMeta
 
 
 class JPEGLS:

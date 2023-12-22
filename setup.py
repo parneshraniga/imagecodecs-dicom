@@ -116,6 +116,9 @@ OPTIONS = {
 }
 
 EXTENSIONS = {
+    'shared': ext(
+        cython_compile_time_env={'IS_PYPY': 'pypy' in sys.version.lower()},
+    ),
     'gif': ext(libraries=['gif']),
     'jpeg2k': ext(
         sources=['3rdparty/openjpeg/color.c'],

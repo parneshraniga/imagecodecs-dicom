@@ -810,8 +810,9 @@ def __getattr__(name: str, /) -> Any:
             return getattr(imagecodecs_dicom, name)
 
         try:
-            module = importlib.import_module('.' + module_name, 'imagecodecs')
-        except ImportError:
+            module = importlib.import_module('.' + module_name, 'imagecodecs_dicom')
+        except ImportError as e:
+            print ("Import Error %s"%e)
             module = None
         except AttributeError:
             # AttributeError: type object 'imagecodecs._module.array' has no

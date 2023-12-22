@@ -46,7 +46,7 @@ from libc.setjmp cimport setjmp
 from zlib cimport *
 from libpng cimport *
 
-from dcm_meta import DCMPixelMeta
+from imagecodecs_dicom.dcm_meta import DCMPixelMeta
 
 class PNG:
     """PNG codec constants."""
@@ -252,6 +252,8 @@ def png_encode(
     del dst
     return _return_output(out, dstsize, mempng.offset, outgiven)
 
+def png_decode_header(data):
+    pass
 
 def png_decode(data, out=None):
     """Return decoded PNG image."""

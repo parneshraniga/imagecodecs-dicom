@@ -43,6 +43,7 @@ include '_shared.pxi'
 
 from giflib cimport *
 
+from imagecodecs_dicom.dcm_meta import DCMPixelMeta
 
 class GIF:
     """GIF codec constants."""
@@ -187,6 +188,8 @@ def gif_encode(data, colormap=None, out=None):
     del dst
     return _return_output(out, dstsize, memgif.offset, outgiven)
 
+def gif_decode_header(data):
+    pass
 
 def gif_decode(data, index=None, asrgb=True, out=None):
     """Return decoded GIF image.
